@@ -1,19 +1,42 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  branches:
+  #Puedes validar las ramas a las que va dirigido el pipeline
+    include:
+      - desarrollo
+      - main
+
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+#En esta seccion podras organizar que dependiendo de la rama correspondiente use el grupo de variables especifico para la rama  
+variables:
+   - name: BRANCH_NAME
+     value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+   - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
+     - group: back-pdn #Cambiar el grupo de variables para main
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+   - ${{ elseif or(eq(variables['Build.SourceBranch'], 'refs/heads/develop'), eq(variables['Build.SourceBranch'], 'refs/heads/desarrollo')) }}:
+     - group: back-dev #Cambiar el grupo de variables para dev
+
+   - ${{ else }}:
+     - group: back-dev
+
+ 
+# En esta seccion puedes definir los repositorios que se utilizaran para el pipeline
+resources:
+  repositories: 
+    - repository: plantillas
+      name : Inicio DevOps Johan/templates
+      type: git
+
+# En esta seccion puedes definir los jobs que se utilizaran para el pipeline y el orden de ejecucion con sus
+# respectivos templates
+stages:
+- stage: Deploy_Back
+  displayName: 'Ejecutar Deploy Back'
+  jobs:
+    - job: Deploy
+      displayName: Despliegue
+      steps:
+          - template: ci-cd-back.yml@plantillas
