@@ -6,13 +6,13 @@ trigger:
       - main
 ## Agregacion de parametros
 parameters:
-  - name: java
-    displayName: "Version java"
+  - name: replicas
+    displayName: "Número de réplicas"
     type: number
-    default: 11
+    default: 1
     values:
-      - 12
-      - 11
+      - 0
+      - 1
   - name: targetECR
     displayName: "Selecciona el ECR destino"
     type: string
