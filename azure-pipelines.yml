@@ -4,21 +4,35 @@ trigger:
     include:
       - desarrollo
       - main
-
+## Agregacion de parametros
 parameters:
   - name: java
-    displayName: "Número de réplicas"
+    displayName: "Version java"
     type: number
     default: 11
     values:
-      - 0
+      - 12
       - 11
-
+  - name: targetECR
+    displayName: "Selecciona el ECR destino"
+    type: string
+    default: "ecr1"
+    values:
+      - ecr1
+      - ecr2
+  - name: targetService
+    displayName: "Selecciona el servicio de ECS"
+    type: string
+    default: "ecs1"
+    values:
+      - ecs1
+      - ecs2
 pool:
   vmImage: 'ubuntu-latest'
 
 #En esta seccion podras organizar que dependiendo de la rama correspondiente use el grupo de variables especifico para la rama  
 variables:
+## Asociacion con las variables en el template
    - name: JAVA
      value: ${{ parameters.java }}
    - name: BRANCH_NAME
