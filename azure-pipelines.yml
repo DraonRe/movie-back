@@ -5,12 +5,22 @@ trigger:
       - desarrollo
       - main
 
+parameters:
+  - name: java
+    displayName: "Número de réplicas"
+    type: number
+    default: 11
+    values:
+      - 0
+      - 11
 
 pool:
   vmImage: 'ubuntu-latest'
 
 #En esta seccion podras organizar que dependiendo de la rama correspondiente use el grupo de variables especifico para la rama  
 variables:
+   - name: JAVA
+     value: ${{ parameters.java }}
    - name: BRANCH_NAME
      value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
