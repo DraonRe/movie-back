@@ -34,7 +34,7 @@ pool:
 variables:
 ## Asociacion con las variables en el template
    - name: JAVA
-     value: ${{ parameters.java }}
+     value: ${{ parameters.replicas }}
    - name: BRANCH_NAME
      value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
