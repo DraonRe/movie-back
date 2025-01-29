@@ -1,66 +1,63 @@
 trigger:
   branches:
-  #Puedes validar las ramas a las que va dirigido el pipeline
     include:
       - desarrollo
       - main
-## Agregacion de parametros
+
+# Agregar parámetro de entorno
 parameters:
-  - name: replicas
-    displayName: "Número de réplicas"
-    type: number
-    default: 1
-    values:
-      - 0
-      - 1
-  - name: targetECR
-    displayName: "Selecciona el ECR destino"
+  - name: entorno
+    displayName: "Selecciona el entorno"
     type: string
-    default: "ecr1"
+    default: "blue"
     values:
-      - ecr1
-      - ecr2
-  - name: targetService
-    displayName: "Selecciona el servicio de ECS"
-    type: string
-    default: "ecs1"
-    values:
-      - ecs1
-      - ecs2
-pool:
-  vmImage: 'ubuntu-latest'
+      - blue
+      - green
 
-#En esta seccion podras organizar que dependiendo de la rama correspondiente use el grupo de variables especifico para la rama  
+# Definir las variables
 variables:
-## Asociacion con las variables en el template
-   - name: JAVA
-     value: ${{ parameters.replicas }}
-   - name: BRANCH_NAME
-     value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
-   - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
-     - group: back-pdn #Cambiar el grupo de variables para main
+  - name: BRANCH_NAME
+    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
 
-   - ${{ elseif or(eq(variables['Build.SourceBranch'], 'refs/heads/develop'), eq(variables['Build.SourceBranch'], 'refs/heads/desarrollo')) }}:
-     - group: back-dev #Cambiar el grupo de variables para dev
+# Usar expresiones para asignar valores de ECR, Service, Task y Cluster
+  - ${{ if eq(parameters.entorno, 'blue') }}:
+      - name: TARGET_ECR
+        value: 'ecr-blue'
+      - name: TARGET_SERVICE
+        value: 'service-blue'
+      - name: TARGET_CLUSTER
+        value: 'cluster-blue'
+      - name: TARGET_TASK
+        value: 'task-blue'
+  - ${{ if eq(parameters.entorno, 'green') }}:
+      - name: TARGET_ECR
+        value: 'ecr-green'
+      - name: TARGET_SERVICE
+        value: 'service-green'
+      - name: TARGET_CLUSTER
+        value: 'cluster-green'
+      - name: TARGET_TASK
+        value: 'task-green'
 
-   - ${{ else }}:
-     - group: back-dev
+  # Cargar grupo de variables dependiendo del parámetro 'entorno'
+  - ${{ if eq(parameters.entorno, 'blue') }}:
+      - group: blue-vars-group
+  - ${{ if eq(parameters.entorno, 'green') }}:
+      - group: green-vars-group
 
- 
-# En esta seccion puedes definir los repositorios que se utilizaran para el pipeline
+# Repositorios a usar
 resources:
-  repositories: 
+  repositories:
     - repository: plantillas
-      name : Inicio DevOps Johan/templates
+      name: Inicio DevOps Johan/templates
       type: git
 
-# En esta seccion puedes definir los jobs que se utilizaran para el pipeline y el orden de ejecucion con sus
-# respectivos templates
+# Stages con el template
 stages:
-- stage: Deploy_Back
-  displayName: 'Ejecutar Deploy Back'
-  jobs:
-    - job: Deploy
-      displayName: Despliegue
-      steps:
+  - stage: Deploy_Back
+    displayName: 'Ejecutar Deploy Back'
+    jobs:
+      - job: Deploy
+        displayName: Despliegue
+        steps:
           - template: ci-cd-back.yml@plantillas
