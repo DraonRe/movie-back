@@ -4,46 +4,24 @@ trigger:
       - desarrollo
       - main
 
-# Agregar parámetro de entorno
-parameters:
-  - name: entorno
-    displayName: "Selecciona el entorno"
-    type: string
-    default: "blue"
-    values:
-      - blue
-      - green
+pool:
+  vmImage: 'ubuntu-latest'
 
-# Definir las variables
+#En esta seccion podras organizar que dependiendo de la rama correspondiente use el grupo de variables especifico para la rama  
 variables:
-  - name: BRANCH_NAME
-    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+   - name: BRANCH_NAME
+     value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+   - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
+     - group: back-pdn
 
-# Usar expresiones para asignar valores de ECR, Service, Task y Cluster
-  - ${{ if eq(parameters.entorno, 'blue') }}:
-      - name: TARGET_ECR
-        value: 'ecr-blue'
-      - name: TARGET_SERVICE
-        value: 'service-blue'
-      - name: TARGET_CLUSTER
-        value: 'cluster-blue'
-      - name: TARGET_TASK
-        value: 'task-blue'
-  - ${{ if eq(parameters.entorno, 'green') }}:
-      - name: TARGET_ECR
-        value: 'ecr-green'
-      - name: TARGET_SERVICE
-        value: 'service-green'
-      - name: TARGET_CLUSTER
-        value: 'cluster-green'
-      - name: TARGET_TASK
-        value: 'task-green'
+   - ${{ elseif or(eq(variables['Build.SourceBranch'], 'refs/heads/develop'), eq(variables['Build.SourceBranch'], 'refs/heads/desarrollo')) }}:
+     - group: back-dev
 
-  # Cargar grupo de variables dependiendo del parámetro 'entorno'
-  - ${{ if eq(parameters.entorno, 'blue') }}:
-      - group: blue-vars-group
-  - ${{ if eq(parameters.entorno, 'green') }}:
-      - group: green-vars-group
+   - ${{ else }}:
+     - group: back-dev
+
+
+
 
 # Repositorios a usar
 resources:
